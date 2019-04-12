@@ -7,6 +7,12 @@ using UnityEngine.Networking;
 
 public class PlayerController : NetworkBehaviour
 {
+
+    public GameObject pickup = null;
+    public bool m_canAttack = false;
+    public float attackCooldownTime = 10.0f;
+    private float currentAttackTimer = -1.0f;
+
     //player
     private Rigidbody m_rb = null;
     public float m_speed = 5.0f;
@@ -32,16 +38,30 @@ public class PlayerController : NetworkBehaviour
 
     void Start()
     {
+        
 
-        if (isLocalPlayer)
+        cam = GetComponentInChildren<Camera>();
+        cam.enabled = hasAuthority;
+
+        
+        m_rb = GetComponent<Rigidbody>();
+        transform.position = GameObject.Find("SpawnPointsScript").GetComponent<PlayersSpawn>().GetSpawnPoint();
+
+        if (hasAuthority && isServer)
         {
-            m_rb = GetComponent<Rigidbody>();
+            Vector3 spawnPos = GameObject.Find("PickupSpawnPoint1").transform.position;
+            GameObject _pickup = Instantiate(pickup, spawnPos, transform.rotation);
+
+            //spawn pickup
+            NetworkServer.Spawn(_pickup);
+            //attachCamera()
+        }
+        if (isServer)
+        {
             NetworkServer.RegisterHandler(TransformMessage.MsgId, OnTransformMsg);
             CustomNetworkManager.singleton.client.RegisterHandler(TransformMessage.MsgId, OnTransformMsg);
-            cam = GetComponentInChildren<Camera>();
-
-            transform.position = GameObject.Find("SpawnPointsScript").GetComponent<PlayersSpawn>().GetSpawnPoint();
         }
+
     }
 
      protected void OnGameStateMsg(NetworkMessage netMsg)
@@ -120,15 +140,19 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
+
+        //camera
+
+
         if (!isLocalPlayer)
         {
+
             cam.enabled = false;
             return;
         }
-
-        //camera
         if (isLocalPlayer)
         {
+            cam.enabled = true;
             yaw += speedH * Input.GetAxis("Mouse X");
             //pitch -= speedV * Input.GetAxis("Mouse Y");
             transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
@@ -165,5 +189,21 @@ public class PlayerController : NetworkBehaviour
     public override void OnStartClient()
     {
         GetComponent<MeshRenderer>().material.color = thisColor;
+    }
+
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        //if(!hasAuthority)
+        //{
+        //    return;
+        //}
+
+        if (collision.gameObject.CompareTag("Pickup"))
+        {
+            Debug.Log("Player collision w/ Pickup");
+            m_canAttack = true;
+            Destroy(collision.gameObject);
+        }
     }
 }

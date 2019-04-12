@@ -28,7 +28,7 @@ GameObject:
   - component: {fileID: 114257222722123522}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -310,13 +310,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c417be2b980346f42819463b08322203, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pickup: {fileID: 1478003309966840, guid: 37a78c31970fa2e4bbc7eb7033376bf2, type: 2}
+  m_canAttack: 0
+  attackCooldownTime: 10
   m_speed: 6
   m_glassesTransform: {fileID: 4990617428248438}
+  spawnPoint: {fileID: 0}
   m_glassesPrefab: {fileID: 1021551604227906, guid: 4b3cf9d173d6ec54d9545e6e2164dae6,
     type: 2}
+  speedH: 2
+  speedV: 2
   m_updateTimePosition: 0
   m_updateTimePositionRate: 0.5
   thisColor: {r: 0, g: 0, b: 0, a: 0}
+  enemyColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!114 &114620453397897768
 MonoBehaviour:
   m_ObjectHideFlags: 1
