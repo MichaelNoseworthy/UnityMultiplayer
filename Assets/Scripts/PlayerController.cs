@@ -39,6 +39,7 @@ public class PlayerController : NetworkBehaviour
     public GameObject CountDownPanel;
     public Text countDownText;
     public float timerEngaged = 0;
+    public bool GameStarted = false;
 
 
     //camera
@@ -65,6 +66,8 @@ public class PlayerController : NetworkBehaviour
         cam.enabled = hasAuthority;
         canvas = GetComponentInChildren<Canvas>();
         canvas.enabled = hasAuthority;
+
+        Cursor.visible = false;
 
         m_rb = GetComponent<Rigidbody>();
         transform.position = GameObject.Find("SpawnPointsScript").GetComponent<PlayersSpawn>().GetSpawnPoint();
@@ -195,6 +198,7 @@ public class PlayerController : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
         {
+            Cursor.visible = !Cursor.visible;
             PauseEnabled = !PauseEnabled;
             PauseMenuUI.SetActive(PauseEnabled);
         }
@@ -390,7 +394,7 @@ public class PlayerController : NetworkBehaviour
 
     public void ResumeButton()
     {
-
+        Cursor.visible = !Cursor.visible;
         PauseEnabled = !PauseEnabled;
         PauseMenuUI.SetActive(PauseEnabled);
     }

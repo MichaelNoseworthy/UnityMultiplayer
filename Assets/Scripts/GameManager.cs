@@ -41,57 +41,128 @@ public class GameManager : NetworkBehaviour
     void Update()
     {
 
-        if (players >= 1 && DoOnce == false)
+        if (players >= 3 && DoOnce == false)
         {
             RpcSendScoreInfo();
 
             GameObject Player0 = GameObject.Find("Player0");
-            Player0.GetComponent<PlayerController>().RpcsetWinnerText();
-            //GameObject Player1 = GameObject.Find("Player1");
-            //Player1.GetComponent<PlayerController>().RpcsetWinnerText();
-            //GameObject Player2 = GameObject.Find("Player2");
-            //Player2.GetComponent<PlayerController>().RpcsetWinnerText();
-
-            if (waitTimer >= 5)
+            if (Player0)
             {
-                Player0.GetComponent<PlayerController>().RpcsetCountDownText("5");
-                //Player1.GetComponent<PlayerController>().RpcsetCountDownText("5");
-                //Player2.GetComponent<PlayerController>().RpcsetCountDownText("5");
+                Player0.GetComponent<PlayerController>().RpcsetWinnerText();
+            }
+            GameObject Player1 = GameObject.Find("Player1");
+            if (Player1)
+            {
+                //Player1.GetComponent<PlayerController>().RpcsetWinnerText();
+            }
+            GameObject Player2 = GameObject.Find("Player2");
+            if (Player2)
+            {
+                //Player2.GetComponent<PlayerController>().RpcsetWinnerText();
+            }
+
+                if (waitTimer >= 5)
+            {
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("5");
+                }
+                if (Player1)
+                {
+                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("5");
+                }
+                if (Player2)
+                {
+                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("5");
+                }
             }
             if (waitTimer >= 4 && waitTimer <= 4.9)
             {
-                Player0.GetComponent<PlayerController>().RpcsetCountDownText("4");
-                //Player1.GetComponent<PlayerController>().RpcsetCountDownText("4");
-                //Player2.GetComponent<PlayerController>().RpcsetCountDownText("4");
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("4");
+                }
+                if (Player1)
+                {
+                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("4");
+                }
+                if (Player2)
+                {
+                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("4");
+                }
             }
             if (waitTimer >= 3 && waitTimer <= 3.9)
             {
-                Player0.GetComponent<PlayerController>().RpcsetCountDownText("3");
-                //Player1.GetComponent<PlayerController>().RpcsetCountDownText("3");
-                //Player2.GetComponent<PlayerController>().RpcsetCountDownText("3");
-            }
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("3");
+                }
+                if (Player1)
+                {
+                    //Player1.GetComponent<PlayerController>().RpcsetCountDownText("3");
+                }
+                if (Player2)
+                {
+                    //Player2.GetComponent<PlayerController>().RpcsetCountDownText("3");
+                }
+                }
             if (waitTimer >= 2 && waitTimer <= 2.9)
             {
-                Player0.GetComponent<PlayerController>().RpcsetCountDownText("2");
-                //Player1.GetComponent<PlayerController>().RpcsetCountDownText("2");
-                //Player2.GetComponent<PlayerController>().RpcsetCountDownText("2");
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("2");
+                }
+                if (Player1)
+                {
+                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("2");
+                }
+                if (Player2)
+                {
+                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("2");
+                }
             }
             if (waitTimer >= 1 && waitTimer <= 1.9)
             {
-                Player0.GetComponent<PlayerController>().RpcsetCountDownText("1");
-                //Player1.GetComponent<PlayerController>().RpcsetCountDownText("1");
-                //Player2.GetComponent<PlayerController>().RpcsetCountDownText("1");
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("1");
+                }
+                if (Player1)
+                {
+                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("1");
+                }
+                if (Player2)
+                {
+                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("1");
+                }
             }
             if (waitTimer >= 0 && waitTimer <= 1.9)
             {
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("0");
+                }
+                if (Player1)
+                {
+                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("0");
+                }
+                if (Player2)
+                {
+                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("0");
+                }
 
-                Player0.GetComponent<PlayerController>().RpcsetCountDownText("0");
-                //Player1.GetComponent<PlayerController>().RpcsetCountDownText("0");
-                //Player2.GetComponent<PlayerController>().RpcsetCountDownText("0");
-
-                Player0.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
-                //Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
-                //Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
+                if (Player0)
+                {
+                    Player0.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
+                }
+                if (Player1)
+                {
+                    //Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
+                }
+                if (Player2)
+                {
+                    //Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
+                }
             }
 
             waitTimer -= Time.deltaTime;

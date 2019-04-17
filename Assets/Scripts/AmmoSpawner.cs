@@ -6,8 +6,8 @@ public class AmmoSpawner : NetworkBehaviour {
     public GameObject ammoPrefab;
     public int numberOfAmmoObjects;
 
-    private float minSpawnPosition = -28.0f;
-    private float maxSpawnPosition = 28.0f;
+    public float minSpawnPosition = -28.0f;
+    public float maxSpawnPosition = 28.0f;
 
     private float minSpawnRotation = 0.0f;
     private float maxSpawnRotation = 180.0f;

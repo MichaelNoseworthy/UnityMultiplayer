@@ -31,21 +31,14 @@ public class Projectile : NetworkBehaviour
 
         //GetComponent<AudioSource>().Play();
         GameObject hit = collision.gameObject;
-        /*
-        Health health = hit.GetComponent<Health>();
-        if (health != null)
-        {
-            health.TakeDamage(10);
-        }
-        */
-        //if (hit.name == "Player0" || hit.name == "Player1" || hit.name == "Player2")
-       
-            //hit.gameObject.transform.SetParent(hit.transform);
             print("hit something");
-            //transform.parent = collision.transform.parent;
+        //transform.parent = collision.transform.parent;
+        if (hit.tag == "Player")
+        {
             hit.GetComponent<PlayerController>().TakeColour(enemyColor);
             hit.GetComponent<PlayerController>().onlyOnce = true;
-        Debug.Log("taking this color :" + enemyColor);
+            Debug.Log("taking this color :" + enemyColor);
+        }
        
         Destroy(gameObject);
         
