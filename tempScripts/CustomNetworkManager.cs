@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class CustomNetworkManager : NetworkManager {
 
-    GameObject Player;
+    public Color[] newColor;
+    public static int counter = 0;
+    GameObject player;
 
-    public Color[] myColor;
-    int counter = 0;
     //
     // Summary:
     //     Called on the client when connected to a server.
@@ -19,7 +20,6 @@ public class CustomNetworkManager : NetworkManager {
     public override void OnClientConnect(NetworkConnection conn)
     {
         base.OnClientConnect(conn);
-        Debug.Log("OnClientConnect");
     }
     //
     // Summary:
@@ -31,46 +31,12 @@ public class CustomNetworkManager : NetworkManager {
     public override void OnClientDisconnect(NetworkConnection conn)
     {
         base.OnClientDisconnect(conn);
-        Debug.Log("OnClientDisconnect");
     }
     
     
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId, NetworkReader extraMessageReader)
     {
         base.OnServerAddPlayer(conn, playerControllerId, extraMessageReader);
-    }
-
-    public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
-    {
-        /*
-        var player = (GameObject)GameObject.Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
-            player.GetComponent<MeshRenderer>().material.color = myColor[counter];
-            player.GetComponent<PlayerController>().thisColor = myColor[counter];
-
-        // Debug.Log("color:: " + colorcount);
-        NetworkServer.AddPlayerForConnection(conn, player, playerControllerId);        
-            counter++;             
-            
-    */
-
-
-        if (playerControllerId < 2)
-        {
-            GameObject player = (GameObject)Instantiate(playerPrefab,
-            new Vector3(Random.Range(-10f, 10f), 0f, Random.Range(-10f, 10f)), Quaternion.identity);
-            player.GetComponent<MeshRenderer>().material.color = myColor[counter];
-            player.GetComponent<PlayerController>().thisColor = myColor[counter];
-            player.name = "Player" + counter;
-            GameManager.players++;
-            counter++;
-            NetworkServer.AddPlayerForConnection(conn, player, playerControllerId);
-            //print(playerControllerId);
-        }
-        else
-        {
-            Debug.Log("game not ready");
-        }
-
     }
 
     //
@@ -85,7 +51,31 @@ public class CustomNetworkManager : NetworkManager {
     //     Id of the new player.
     //
     //   extraMessageReader:
-    //     An extra message object passed for the new player.    
+    //     An extra message object passed for the new player.
+
+    
+
+    public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
+    {
+        if (playerControllerId < 2)
+        {
+
+            GameObject player = (GameObject)Instantiate(playerPrefab,
+            new Vector3(Random.Range(-10f, 10f), 0f, Random.Range(-10f, 10f)), Quaternion.identity);
+            player.GetComponent<MeshRenderer>().material.color = newColor[counter];
+            player.GetComponent<PlayerController>().color = newColor[counter];
+            player.name = "Player" + counter;
+            GameManager.players++;
+            counter++;
+            NetworkServer.AddPlayerForConnection(conn, player, playerControllerId);
+            //print(playerControllerId);
+        }
+        else
+        {
+            Debug.Log("SPECTATOR MODE");
+        }
+        
+    }
 
     //
     // Summary:
@@ -97,7 +87,6 @@ public class CustomNetworkManager : NetworkManager {
     public override void OnServerConnect(NetworkConnection conn)
     {
         base.OnServerConnect(conn);
-        Debug.Log("OnServerConnect");
     }
 
     //
@@ -110,7 +99,6 @@ public class CustomNetworkManager : NetworkManager {
     public override void OnServerDisconnect(NetworkConnection conn)
     {
         base.OnServerDisconnect(conn);
-        Debug.Log("OnServerDisconnect");
     }
 
     //
@@ -139,7 +127,7 @@ public class CustomNetworkManager : NetworkManager {
     {
         base.OnServerReady(conn);
     }
-    
+
     //
     // Summary:
     //     This is a hook that is invoked when the client is started.
@@ -150,7 +138,7 @@ public class CustomNetworkManager : NetworkManager {
     public override void OnStartClient(NetworkClient client)
     {
         base.OnStartClient(client);
-        Debug.Log("OnStartClient");
+        //client.RegisterHandler(GameStateMsg.msgId, OnGameStateMsg);
     }
     //
     // Summary:
@@ -158,11 +146,13 @@ public class CustomNetworkManager : NetworkManager {
     public override void OnStartHost()
     {
         base.OnStartHost();
-        Debug.Log("OnStartHost");
     }
 
     //
     // Summary:
     //     This hook is invoked when a server is started - including when a host is started.
-
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+    }
 }
