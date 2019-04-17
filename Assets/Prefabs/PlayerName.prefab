@@ -27,7 +27,7 @@ GameObject:
   - component: {fileID: 114620453397897768}
   - component: {fileID: 114257222722123522}
   m_Layer: 0
-  m_Name: Player
+  m_Name: PlayerName
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -863,12 +863,14 @@ MonoBehaviour:
   winnerText: {fileID: 114467076145787846}
   CountDownPanel: {fileID: 1187737939782572}
   countDownText: {fileID: 114954990238505604}
+  timerEngaged: 0
   speedH: 2
   speedV: 2
   m_updateTimePosition: 0
   m_updateTimePositionRate: 0.5
   thisColor: {r: 0, g: 0, b: 0, a: 0}
   enemyColor: {r: 0, g: 0, b: 0, a: 0}
+  onlyOnce: 0
 --- !u!114 &114284474238015608
 MonoBehaviour:
   m_ObjectHideFlags: 1
