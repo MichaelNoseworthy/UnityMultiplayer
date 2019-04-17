@@ -30,8 +30,15 @@ public class PlayerController : NetworkBehaviour
     public Text redScore;
     public Text blueScore;
     public Text greenScore;
+    public GameObject GameOverPanel;
     public bool beenHit = false;
     bool doOnce = true;
+    public bool PauseEnabled = false;
+    public GameObject PauseMenuUI;
+    public Text winnerText;
+    public GameObject CountDownPanel;
+    public Text countDownText;
+    public float timerEngaged = 0;
 
 
     //camera
@@ -50,6 +57,7 @@ public class PlayerController : NetworkBehaviour
     public Color thisColor;
     [SyncVar]
     public Color enemyColor;
+    public bool onlyOnce;
 
     void Start()
     {
@@ -58,10 +66,11 @@ public class PlayerController : NetworkBehaviour
         canvas = GetComponentInChildren<Canvas>();
         canvas.enabled = hasAuthority;
 
-
         m_rb = GetComponent<Rigidbody>();
         transform.position = GameObject.Find("SpawnPointsScript").GetComponent<PlayersSpawn>().GetSpawnPoint();
-
+        PauseMenuUI.SetActive(false);
+        CountDownPanel.SetActive(false);
+        GameOverPanel.SetActive(false);
 
         if (isServer)
         {
@@ -121,7 +130,6 @@ public class PlayerController : NetworkBehaviour
         if (isServer)
         {
             sendResult = NetworkServer.SendToAll(GameStateMsg.msgId, msg);
-
         }
         else
         {
@@ -183,7 +191,12 @@ public class PlayerController : NetworkBehaviour
             {
                 print("OUT OF AMMO");
             }
-            
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        {
+            PauseEnabled = !PauseEnabled;
+            PauseMenuUI.SetActive(PauseEnabled);
         }
 
         CmdgetScoreUpdate();
@@ -200,35 +213,37 @@ public class PlayerController : NetworkBehaviour
             m_updateTimePosition = 0;
         }
 
-        /*
+        if (beenHit && onlyOnce) {
+            timerEngaged = 0;
+            onlyOnce = false; 
+        }
+
+
         if (beenHit)
         {
-            float timerEngaged = 0;
+           
             GetComponent<MeshRenderer>().material.color = enemyColor;
-            while (beenHit)
-            {
-
-                timerEngaged *= Time.deltaTime;
-
-                if (timerEngaged % 0.2 == 0)
-                {
-                    GetComponent<MeshRenderer>().material.color = thisColor;
+            Debug.Log("IM HERE BEEn HIT ");
+            if (Time.fixedTime % .5 < .2)
+                 {
+                     GetComponent<MeshRenderer>().material.color = thisColor;
+                 }
+                 else
+                 {
+                 GetComponent<MeshRenderer>().material.color = enemyColor;
                 }
-                else
-                {
-                    GetComponent<MeshRenderer>().material.color = enemyColor;
-                }
-
-                if (timerEngaged >= 3)
-                {
-                    beenHit = false;
-                    GetComponent<MeshRenderer>().material.color = thisColor;
-                    break;
-                }
-
-            }
+                
         }
-        */
+
+        timerEngaged *= Time.deltaTime;
+
+        if (timerEngaged >= 3)
+        {
+            Debug.Log("IM HERE timerengad");
+            beenHit = false;
+          //  onlyOnce = false;
+            GetComponent<MeshRenderer>().material.color = thisColor;
+        }
     }
 
     [Command]
@@ -243,7 +258,7 @@ public class PlayerController : NetworkBehaviour
         NetworkServer.Spawn(glassesProjectile);
         Destroy(glassesProjectile, 0.5f);
         */
-        if (isFireEnabled)
+            if (isFireEnabled)
         {
             if (this.name == "Player0")
             {
@@ -300,17 +315,17 @@ public class PlayerController : NetworkBehaviour
 
         if (collision.gameObject.tag == "BulletGreen")
         {
-            GameManager.gScore += 1;
+            RpcsetGreenScore();
         }
 
         if (collision.gameObject.tag == "BulletBlue")
         {
-            GameManager.bScore += 1;
+            RpcsetBlueScore();
         }
 
         if (collision.gameObject.tag == "BulletRed")
         {
-            GameManager.rScore += 1;
+            RpcsetRedScore();
         }
     }
     [Command]
@@ -342,6 +357,53 @@ public class PlayerController : NetworkBehaviour
     public void TakeColour(Color color)
     {
         enemyColor = color;
+        Debug.Log("receiving this color :" + enemyColor);
         beenHit = true;
+    }
+
+    [ClientRpc]
+    void RpcsetGreenScore()
+    {
+        GameManager.gScore += 1;
+    }
+
+    [ClientRpc]
+    void RpcsetBlueScore()
+    {
+        GameManager.bScore += 1;
+    }
+
+    [ClientRpc]
+    void RpcsetRedScore()
+    {
+        GameManager.rScore += 1;
+    }
+
+    public void Quit()
+    {
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+		Application.Quit();
+        #endif
+    }
+
+    public void ResumeButton()
+    {
+
+        PauseEnabled = !PauseEnabled;
+        PauseMenuUI.SetActive(PauseEnabled);
+    }
+    [ClientRpc]
+    public void RpcsetWinnerText()
+    {
+        winnerText.text = "Testing";
+    }
+
+
+    [ClientRpc]
+    public void RpcsetCountDownText(string value)
+    {
+        countDownText.text = value;
     }
 }

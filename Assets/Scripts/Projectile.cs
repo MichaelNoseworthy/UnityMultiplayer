@@ -43,7 +43,9 @@ public class Projectile : NetworkBehaviour
             //hit.gameObject.transform.SetParent(hit.transform);
             print("hit something");
             //transform.parent = collision.transform.parent;
-            //hit.GetComponent<PlayerController>().TakeColour(enemyColor);
+            hit.GetComponent<PlayerController>().TakeColour(enemyColor);
+            hit.GetComponent<PlayerController>().onlyOnce = true;
+        Debug.Log("taking this color :" + enemyColor);
        
         Destroy(gameObject);
         
