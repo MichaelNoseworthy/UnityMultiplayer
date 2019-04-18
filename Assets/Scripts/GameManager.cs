@@ -15,35 +15,47 @@ public class GameManager : NetworkBehaviour
     public static int rScore;
     public static int gScore;
     public static int bScore;
+    public static bool GameStarted = false;
+    public Text GameTimer;
+    public GameObject CountDownPanel;
 
     public GameObject endGame;
     public Text winner; //GGs 
 
     public Text wait_Timer;
 
-    public float waitTimer = 5f;
+    public float waitTimer = 7f;
 
     public GameObject Spawner;
-    /*
-    GameObject Player0cam;
-    GameObject Player1cam;
-    GameObject Player2cam;
-    */
+
+    public const float maxTime = 120;
+    public float inGameTimer;
+    static public string currentInGameTime;
 
     void Start()
     {
         rScore = 0;
         gScore = 0;
         bScore = 0;
-       // endGame.SetActive(false);
+        CountDownPanel.SetActive(false);
+        RpcSetGameTimer("5");
+        inGameTimer = maxTime;
+        
+        // endGame.SetActive(false);
     }
 
     void Update()
     {
+        
 
-        if (players >= 3 && DoOnce == false)
+        if (players >= 2 && DoOnce == false)
         {
             RpcSendScoreInfo();
+            if (waitTimer <= 0.2)
+            {
+                RpcStartGame();
+            }
+            CountDownPanel.SetActive(true);
 
             GameObject Player0 = GameObject.Find("Player0");
             if (Player0)
@@ -53,16 +65,32 @@ public class GameManager : NetworkBehaviour
             GameObject Player1 = GameObject.Find("Player1");
             if (Player1)
             {
-                //Player1.GetComponent<PlayerController>().RpcsetWinnerText();
+                Player1.GetComponent<PlayerController>().RpcsetWinnerText();
             }
             GameObject Player2 = GameObject.Find("Player2");
             if (Player2)
             {
-                //Player2.GetComponent<PlayerController>().RpcsetWinnerText();
+                Player2.GetComponent<PlayerController>().RpcsetWinnerText();
+            }
+            /*
+            if (Player0)
+            {
+                Player0.GetComponent<PlayerController>().CountDownPanel.SetActive(true);
+            }
+            if (Player1)
+            {
+                Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(true);
+            }
+            if (Player2)
+            {
+                Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(true);
             }
 
-                if (waitTimer >= 5)
+        */
+            if (waitTimer >= 5)
             {
+                RpcSetGameTimer("5");
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().RpcsetCountDownText("5");
@@ -75,9 +103,12 @@ public class GameManager : NetworkBehaviour
                 {
                     Player2.GetComponent<PlayerController>().RpcsetCountDownText("5");
                 }
+                */
             }
-            if (waitTimer >= 4 && waitTimer <= 4.9)
+            if (waitTimer >= 4 && waitTimer <= 5)
             {
+                RpcSetGameTimer("4");
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().RpcsetCountDownText("4");
@@ -90,24 +121,30 @@ public class GameManager : NetworkBehaviour
                 {
                     Player2.GetComponent<PlayerController>().RpcsetCountDownText("4");
                 }
+                */
             }
-            if (waitTimer >= 3 && waitTimer <= 3.9)
+            if (waitTimer >= 3 && waitTimer <= 4)
             {
+                RpcSetGameTimer("3");
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().RpcsetCountDownText("3");
                 }
                 if (Player1)
                 {
-                    //Player1.GetComponent<PlayerController>().RpcsetCountDownText("3");
+                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("3");
                 }
                 if (Player2)
                 {
-                    //Player2.GetComponent<PlayerController>().RpcsetCountDownText("3");
+                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("3");
                 }
-                }
-            if (waitTimer >= 2 && waitTimer <= 2.9)
+                */
+            }
+            if (waitTimer >= 2 && waitTimer <= 3)
             {
+                RpcSetGameTimer("2");
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().RpcsetCountDownText("2");
@@ -120,9 +157,12 @@ public class GameManager : NetworkBehaviour
                 {
                     Player2.GetComponent<PlayerController>().RpcsetCountDownText("2");
                 }
+                */
             }
-            if (waitTimer >= 1 && waitTimer <= 1.9)
+            if (waitTimer >= 1 && waitTimer <= 2)
             {
+                RpcSetGameTimer("1");
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().RpcsetCountDownText("1");
@@ -135,9 +175,12 @@ public class GameManager : NetworkBehaviour
                 {
                     Player2.GetComponent<PlayerController>().RpcsetCountDownText("1");
                 }
+                */
             }
-            if (waitTimer >= 0 && waitTimer <= 1.9)
+            if (waitTimer >= 0 && waitTimer <= 1)
             {
+                RpcSetGameTimer("0");
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().RpcsetCountDownText("0");
@@ -150,19 +193,25 @@ public class GameManager : NetworkBehaviour
                 {
                     Player2.GetComponent<PlayerController>().RpcsetCountDownText("0");
                 }
+                */
 
+            }
+            if (waitTimer <= 0)
+            {
+                /*
                 if (Player0)
                 {
                     Player0.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
                 }
                 if (Player1)
                 {
-                    //Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
+                    Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
                 }
                 if (Player2)
                 {
-                    //Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
+                    Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
                 }
+                */
             }
 
             waitTimer -= Time.deltaTime;
@@ -174,7 +223,16 @@ public class GameManager : NetworkBehaviour
             }
         }
 
-        if(rScore>=10)
+        if (GameStarted == true)
+        {
+            inGameTimer -= Time.deltaTime;
+
+            string minutes = Mathf.Floor(inGameTimer / 60).ToString("00");
+            string seconds = (inGameTimer % 60).ToString("00");
+            RpcSetInGameTimer(minutes + ":" + seconds);
+        }
+
+        if (rScore>=10)
         {
             winner.text = "Red Wins!";
             RpcEndGame("Red Wins!");
@@ -262,6 +320,40 @@ public class GameManager : NetworkBehaviour
         Time.timeScale = 0;
         */
     }
+
+    [ClientRpc]
+    public void RpcStartGame()
+    {
+        GameStarted = true;
+        GameObject Player0 = GameObject.Find("Player0");
+        if (Player0)
+        {
+            Player0.GetComponent<PlayerController>().canMove = true;
+        }
+        GameObject Player1 = GameObject.Find("Player1");
+        if (Player1)
+        {
+            Player1.GetComponent<PlayerController>().canMove = true;
+        }
+        GameObject Player2 = GameObject.Find("Player2");
+        if (Player2)
+        {
+            Player2.GetComponent<PlayerController>().canMove = true;
+        }
+    }
+
+    [ClientRpc]
+    public void RpcSetGameTimer(string value)
+    {
+        GameTimer.text = value;
+    }
+
+    [ClientRpc]
+    public void RpcSetInGameTimer(string value)
+    {
+        currentInGameTime = value;
+    }
+
 }
 
 

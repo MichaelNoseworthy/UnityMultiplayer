@@ -36,14 +36,15 @@ public class PlayerController : NetworkBehaviour
     public bool PauseEnabled = false;
     public GameObject PauseMenuUI;
     public Text winnerText;
-    public GameObject CountDownPanel;
-    public Text countDownText;
     public float timerEngaged = 0;
-    public bool GameStarted = false;
+    public bool canMove = false;
+    public Text InGameTimer;
+    public GameObject GameTimerPanel;
 
 
     //camera
     Camera cam;
+    Camera MainCamera;
     Canvas canvas;
     public float speedH = 2.0f;
     public float speedV = 2.0f;
@@ -62,17 +63,22 @@ public class PlayerController : NetworkBehaviour
 
     void Start()
     {
+        //test
+        canMove = false;
+        MainCamera = GameObject.Find("MainCamera").GetComponent<Camera>();
         cam = GetComponentInChildren<Camera>();
-        cam.enabled = hasAuthority;
+        cam.enabled = false;
+        MainCamera.enabled = true;
+        Cursor.visible = false;
+
         canvas = GetComponentInChildren<Canvas>();
         canvas.enabled = hasAuthority;
-
-        Cursor.visible = false;
 
         m_rb = GetComponent<Rigidbody>();
         transform.position = GameObject.Find("SpawnPointsScript").GetComponent<PlayersSpawn>().GetSpawnPoint();
         PauseMenuUI.SetActive(false);
-        CountDownPanel.SetActive(false);
+        GameTimerPanel.SetActive(false);
+
         GameOverPanel.SetActive(false);
 
         if (isServer)
@@ -83,7 +89,7 @@ public class PlayerController : NetworkBehaviour
 
     }
 
-     protected void OnGameStateMsg(NetworkMessage netMsg)
+    protected void OnGameStateMsg(NetworkMessage netMsg)
     {
         GameStateMsg msg = netMsg.ReadMessage<GameStateMsg>();
         Debug.Log("OnGameStateMsg msg.m_netId: " + msg.m_netId);
@@ -95,7 +101,7 @@ public class PlayerController : NetworkBehaviour
             this.transform.position = msg.m_position;
             Debug.Log("OnGameStateMsg Position: " + msg.m_position);
         }
-        
+
     }
 
 
@@ -169,21 +175,40 @@ public class PlayerController : NetworkBehaviour
             doOnce = false;
         }
         //camera
+
+        if (GameManager.GameStarted == true)
+        {
+
+            //MainCamera.enabled = false;
+            MainCamera.gameObject.SetActive(false);
+            //cam.enabled = hasAuthority;
+            cam.enabled = true;
+            cam.gameObject.SetActive(true);
+            GameTimerPanel.SetActive(true);
+            InGameTimer.text = GameManager.currentInGameTime;
+            /*
+            MainCamera.gameObject.SetActive(false);
+            cam.gameObject.SetActive(true);
+            */
+        }
+        /*
         if (!isLocalPlayer)
         {
 
             cam.enabled = false;
             return;
         }
-        if (isLocalPlayer)
+        */
+        if (isLocalPlayer && GameManager.GameStarted == true)// || canMove == true)
         {
             cam.enabled = true;
             yaw += speedH * Input.GetAxis("Mouse X");
             //pitch -= speedV * Input.GetAxis("Mouse Y");
             transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
         }
+        
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))// || canMove == true)
         {
             if (ammo > 0)
             {
@@ -219,7 +244,7 @@ public class PlayerController : NetworkBehaviour
 
         if (beenHit && onlyOnce) {
             timerEngaged = 0;
-            onlyOnce = false; 
+            onlyOnce = false;
         }
 
 
@@ -230,23 +255,26 @@ public class PlayerController : NetworkBehaviour
             Debug.Log("IM HERE BEEn HIT ");
             if (Time.fixedTime % .5 < .2)
                  {
-                     GetComponent<MeshRenderer>().material.color = thisColor;
+                    GetComponent<MeshRenderer>().material.color = thisColor;
+                    RpcSwitchThisColor();
                  }
                  else
                  {
-                 GetComponent<MeshRenderer>().material.color = enemyColor;
+                    GetComponent<MeshRenderer>().material.color = enemyColor;
+                    RpcSwitchEnemyColor();
                 }
                 
         }
 
-        timerEngaged *= Time.deltaTime;
+        timerEngaged += Time.deltaTime;
 
         if (timerEngaged >= 3)
         {
             Debug.Log("IM HERE timerengad");
             beenHit = false;
-          //  onlyOnce = false;
+            onlyOnce = true;
             GetComponent<MeshRenderer>().material.color = thisColor;
+            RpcSwitchThisColor();
         }
     }
 
@@ -405,9 +433,20 @@ public class PlayerController : NetworkBehaviour
     }
 
 
+    
+
+
     [ClientRpc]
-    public void RpcsetCountDownText(string value)
+    public void RpcSwitchThisColor()
     {
-        countDownText.text = value;
+        GetComponent<MeshRenderer>().material.color = thisColor;
     }
+
+    [ClientRpc]
+    public void RpcSwitchEnemyColor()
+    {
+        GetComponent<MeshRenderer>().material.color = enemyColor;
+    }
+
+
 }
