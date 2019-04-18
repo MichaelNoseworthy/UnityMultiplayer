@@ -18,9 +18,10 @@ public class GameManager : NetworkBehaviour
     public static bool GameStarted = false;
     public Text GameTimer;
     public GameObject CountDownPanel;
+    static public bool gameWon = false;
 
     public GameObject endGame;
-    public Text winner; //GGs 
+    static public string Winner;
 
     public Text wait_Timer;
 
@@ -28,8 +29,8 @@ public class GameManager : NetworkBehaviour
 
     public GameObject Spawner;
 
-    public const float maxTime = 120;
-    public float inGameTimer;
+    public const float maxTime = 180;
+    static public float inGameTimer;
     static public string currentInGameTime;
 
     void Start()
@@ -40,17 +41,18 @@ public class GameManager : NetworkBehaviour
         CountDownPanel.SetActive(false);
         RpcSetGameTimer("5");
         inGameTimer = maxTime;
-        
-        // endGame.SetActive(false);
     }
 
     void Update()
     {
-        
 
-        if (players >= 2 && DoOnce == false)
+        if (inGameTimer < 0)
         {
-            RpcSendScoreInfo();
+            RpcSignalGameOver();
+        }
+        if (players >= 3 && DoOnce == false)
+        {
+
             if (waitTimer <= 0.2)
             {
                 RpcStartGame();
@@ -72,150 +74,37 @@ public class GameManager : NetworkBehaviour
             {
                 Player2.GetComponent<PlayerController>().RpcsetWinnerText();
             }
-            /*
-            if (Player0)
-            {
-                Player0.GetComponent<PlayerController>().CountDownPanel.SetActive(true);
-            }
-            if (Player1)
-            {
-                Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(true);
-            }
-            if (Player2)
-            {
-                Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(true);
-            }
-
-        */
             if (waitTimer >= 5)
             {
                 RpcSetGameTimer("5");
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("5");
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("5");
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("5");
-                }
-                */
             }
             if (waitTimer >= 4 && waitTimer <= 5)
             {
                 RpcSetGameTimer("4");
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("4");
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("4");
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("4");
-                }
-                */
             }
             if (waitTimer >= 3 && waitTimer <= 4)
             {
                 RpcSetGameTimer("3");
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("3");
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("3");
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("3");
-                }
-                */
             }
             if (waitTimer >= 2 && waitTimer <= 3)
             {
                 RpcSetGameTimer("2");
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("2");
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("2");
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("2");
-                }
-                */
             }
             if (waitTimer >= 1 && waitTimer <= 2)
             {
                 RpcSetGameTimer("1");
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("1");
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("1");
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("1");
-                }
-                */
             }
             if (waitTimer >= 0 && waitTimer <= 1)
             {
                 RpcSetGameTimer("0");
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().RpcsetCountDownText("0");
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().RpcsetCountDownText("0");
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().RpcsetCountDownText("0");
-                }
-                */
 
             }
             if (waitTimer <= 0)
             {
-                /*
-                if (Player0)
-                {
-                    Player0.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
-                }
-                if (Player1)
-                {
-                    Player1.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
-                }
-                if (Player2)
-                {
-                    Player2.GetComponent<PlayerController>().CountDownPanel.SetActive(false);
-                }
-                */
             }
 
             waitTimer -= Time.deltaTime;
-            if (waitTimer <= 0)
+            if (waitTimer <= 0 && hasAuthority)
             {
                 Spawner.GetComponent<AmmoSpawner>().RpcspawnAmmo();
 
@@ -225,6 +114,7 @@ public class GameManager : NetworkBehaviour
 
         if (GameStarted == true)
         {
+            if (inGameTimer >0)
             inGameTimer -= Time.deltaTime;
 
             string minutes = Mathf.Floor(inGameTimer / 60).ToString("00");
@@ -232,94 +122,9 @@ public class GameManager : NetworkBehaviour
             RpcSetInGameTimer(minutes + ":" + seconds);
         }
 
-        if (rScore>=10)
-        {
-            winner.text = "Red Wins!";
-            RpcEndGame("Red Wins!");
-        }
-        if (gScore >= 10)
-        {
-            winner.text = "Green Wins!";
-            RpcEndGame("Green Wins!");
-        }
-        if (bScore >= 10)
-        {
-            winner.text = "Blue Wins!";
-            RpcEndGame("Blue Wins!");
-        }
-
-        Debug.Log("players = " + players);
-        if (players == MaxPlayers && !DoOnce)
-        {
-            if (isServer)
-            {
-
-            }
-
-            RpcWaitTime();
-
-        }
-    }
-
-    [ClientRpc]
-    public void RpcSendScoreInfo()
-    {
-
-
-        /*
-        redScore.text = "Red Score: " + rScore;
-        greenScore.text = "Green Score: " + gScore;
-        blueScore.text = "Blue Score: " + bScore;
-        */
-    }
-
-    [ClientRpc]
-    public void RpcWaitTime()
-    {
-        /*
-        waitTimer -= Time.deltaTime;
-        print(Mathf.Round(waitTimer));
-
-        wait_Timer.text = "Lobby Timer: " + Mathf.Round(waitTimer);
-
-        if (waitTimer <= 0)
-        {
-            timer.GetComponent<GameTimer>().StartTimer();
-            PlayerController.isFireEnabled = true;
-            networkSpawner.GetComponent<AmmoSpawner>().RpcspawnAmmo();
-            GameObject camera = GameObject.Find("LobbyCam");
-            camera.SetActive(false);
-            GameObject Player0 = GameObject.Find("Player0");
-            Player0.transform.position = new Vector3(Random.Range(-10f, 10f), 0f, Random.Range(-10f, 10f));
-            GameObject Player1 = GameObject.Find("Player1");
-            Player1.transform.position = new Vector3(Random.Range(-10f, 10f), 0f, Random.Range(-10f, 10f));
-            GameObject Player2 = GameObject.Find("Player2");
-            Player2.transform.position = new Vector3(Random.Range(-10f, 10f), 0f, Random.Range(-10f, 10f));
-            DoOnce = true;
-
-        }
-        */
     }
 
 
-    public void EndGameResults(string winnerText)
-    {
-        /*
-        endGame.SetActive(true);
-        winner.text = winnerText; 
-        RpcEndGame(winnerText);
-        Time.timeScale = 0;
-        */
-    }
-    [ClientRpc]
-    public void RpcEndGame(string winnerText)
-    {
-        /*
-        endGame.SetActive(true);
-        winner.text = winnerText;
-        Time.timeScale = 0;
-        */
-    }
 
     [ClientRpc]
     public void RpcStartGame()
@@ -354,6 +159,30 @@ public class GameManager : NetworkBehaviour
         currentInGameTime = value;
     }
 
-}
+    [ClientRpc]
+    public void RpcSignalGameOver()
+    {
 
+        string value = "Green Team Wins!";
+
+        int tempInt = gScore;
+
+        if (rScore > tempInt)
+        {
+            tempInt = rScore;
+            value = "Red Team Wins!";
+        }
+
+        if (bScore > tempInt)
+        {
+            tempInt = bScore;
+            value = "Blue Team Wins!";
+        }
+
+        Winner = value;
+        gameWon = true;
+    }
+
+    
+}
 

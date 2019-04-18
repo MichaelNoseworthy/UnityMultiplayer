@@ -14,8 +14,6 @@ public class Projectile : NetworkBehaviour
     // Use this for initialization
     void Start()
     {
-        //GetComponent<AudioSource>().playOnAwake = false;
-       // GetComponent<AudioSource>().clip = sound;
        GetComponent<Renderer>().material.color = enemyColor;
 
     }
@@ -26,17 +24,14 @@ public class Projectile : NetworkBehaviour
 
     }
 
-    void OnCollisionEnter(Collision collision)
+    void OnTriggerEnter(Collider collision)
     {
 
-        //GetComponent<AudioSource>().Play();
         GameObject hit = collision.gameObject;
             print("hit something");
-        //transform.parent = collision.transform.parent;
         if (hit.tag == "Player")
         {
-            hit.GetComponent<PlayerController>().TakeColour(enemyColor);
-            hit.GetComponent<PlayerController>().onlyOnce = true;
+            hit.GetComponent<PlayerController>().RpcTakeColour(enemyColor);
             Debug.Log("taking this color :" + enemyColor);
         }
        

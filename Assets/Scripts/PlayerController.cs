@@ -11,8 +11,6 @@ public class PlayerController : NetworkBehaviour
 
     public GameObject pickup = null;
     public bool m_canAttack = false;
-    public float attackCooldownTime = 10.0f;
-    private float currentAttackTimer = -1.0f;
 
     public GameObject Bullet1;
     public GameObject Bullet2;
@@ -20,32 +18,37 @@ public class PlayerController : NetworkBehaviour
 
     //player
     private Rigidbody m_rb = null;
-    public float m_speed = 5.0f;
+    private float m_speed = 5.0f;
     public Transform m_glassesTransform;
     public Transform spawnPoint;
     public GameObject m_glassesPrefab;
-    public int ammo = 5;
-    public static bool isFireEnabled = true;
-    private float bulletSpeed = 6;
+    private int ammo = 0;
+    private static bool isFireEnabled = true;
+    private float bulletSpeed = 20;
     public Text redScore;
     public Text blueScore;
     public Text greenScore;
+    public Text AmmoAmount;
     public GameObject GameOverPanel;
-    public bool beenHit = false;
+    public bool wasHit = false;
+    public bool hitOnlyOnce = true;
     bool doOnce = true;
     public bool PauseEnabled = false;
     public GameObject PauseMenuUI;
     public Text winnerText;
-    public float timerEngaged = 0;
+    public float timerEngaged = -1;
     public bool canMove = false;
     public Text InGameTimer;
     public GameObject GameTimerPanel;
+    public Text ShowAmmo;
+
 
 
     //camera
     Camera cam;
     Camera MainCamera;
     Canvas canvas;
+    Canvas MainCameraCanvas;
     public float speedH = 2.0f;
     public float speedV = 2.0f;
     private float yaw = 0.0f;
@@ -59,7 +62,6 @@ public class PlayerController : NetworkBehaviour
     public Color thisColor;
     [SyncVar]
     public Color enemyColor;
-    public bool onlyOnce;
 
     void Start()
     {
@@ -164,51 +166,42 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        if (hasAuthority && isServer && GameManager.players >= 3 && doOnce == true)
+        if (hasAuthority && isServer && GameManager.players >= 1 && doOnce == true)
         {
+            /*
             Vector3 spawnPos = GameObject.Find("PickupSpawnPoint1").transform.position;
             GameObject _pickup = Instantiate(pickup, spawnPos, transform.rotation);
-
-            //spawn pickup
             NetworkServer.Spawn(_pickup);
-            //attachCamera()
             doOnce = false;
+            */
         }
         //camera
 
-        if (GameManager.GameStarted == true)
+        if (GameManager.GameStarted == true && GameManager.players < 4)
         {
-
-            //MainCamera.enabled = false;
+            
             MainCamera.gameObject.SetActive(false);
-            //cam.enabled = hasAuthority;
             cam.enabled = true;
             cam.gameObject.SetActive(true);
             GameTimerPanel.SetActive(true);
             InGameTimer.text = GameManager.currentInGameTime;
-            /*
-            MainCamera.gameObject.SetActive(false);
-            cam.gameObject.SetActive(true);
-            */
         }
-        /*
-        if (!isLocalPlayer)
+        if (GameManager.GameStarted == true && GameManager.players >= 4)
         {
-
-            cam.enabled = false;
-            return;
+            GameObject Player0 = GameObject.Find("Player0");
+            canvas = Player0.GetComponentInChildren<Canvas>();
+            canvas.enabled = true;
         }
-        */
-        if (isLocalPlayer && GameManager.GameStarted == true)// || canMove == true)
+
+            if (isLocalPlayer && GameManager.GameStarted == true)
         {
             cam.enabled = true;
             yaw += speedH * Input.GetAxis("Mouse X");
-            //pitch -= speedV * Input.GetAxis("Mouse Y");
             transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
         }
         
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))// || canMove == true)
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
             if (ammo > 0)
             {
@@ -221,6 +214,17 @@ public class PlayerController : NetworkBehaviour
             }
         }
 
+        if (!GameManager.GameStarted)
+        {
+            ShowAmmo.enabled = false;
+            AmmoAmount.text = "";
+        }
+        if (GameManager.GameStarted)
+        {
+            ShowAmmo.enabled = true;
+            AmmoAmount.text = ammo.ToString();
+        }
+
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
         {
             Cursor.visible = !Cursor.visible;
@@ -230,6 +234,11 @@ public class PlayerController : NetworkBehaviour
 
         CmdgetScoreUpdate();
         getScoreUpdate();
+
+        if (GameManager.gameWon == true)
+        {
+            turnCursorOn();
+        }
 
 
         Vector3 forward = Input.GetAxis("Vertical") * transform.right * m_speed;
@@ -242,17 +251,16 @@ public class PlayerController : NetworkBehaviour
             m_updateTimePosition = 0;
         }
 
-        if (beenHit && onlyOnce) {
+        if (wasHit && hitOnlyOnce) {
             timerEngaged = 0;
-            onlyOnce = false;
+            hitOnlyOnce = false;
         }
 
 
-        if (beenHit)
+        if (wasHit)
         {
            
             GetComponent<MeshRenderer>().material.color = enemyColor;
-            Debug.Log("IM HERE BEEn HIT ");
             if (Time.fixedTime % .5 < .2)
                  {
                     GetComponent<MeshRenderer>().material.color = thisColor;
@@ -270,26 +278,21 @@ public class PlayerController : NetworkBehaviour
 
         if (timerEngaged >= 3)
         {
-            Debug.Log("IM HERE timerengad");
-            beenHit = false;
-            onlyOnce = true;
+            wasHit = false;
+            hitOnlyOnce = true;
             GetComponent<MeshRenderer>().material.color = thisColor;
             RpcSwitchThisColor();
+        }
+
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            RpcSetTimeLower();
         }
     }
 
     [Command]
     public void CmdSpawnGlass() {
-        /*
-        GameObject glassesProjectile = Instantiate(m_glassesPrefab, m_glassesTransform);
-        glassesProjectile.GetComponent<MeshRenderer>().material.color = thisColor;
-        Rigidbody rb = glassesProjectile.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.velocity = glassesProjectile.transform.right * m_speed;
 
-        NetworkServer.Spawn(glassesProjectile);
-        Destroy(glassesProjectile, 0.5f);
-        */
             if (isFireEnabled)
         {
             if (this.name == "Player0")
@@ -344,27 +347,32 @@ public class PlayerController : NetworkBehaviour
             m_canAttack = true;
             Destroy(collision.gameObject);
         }
+    }
+    private void OnTriggerEnter(Collider collision)
+    {
 
         if (collision.gameObject.tag == "BulletGreen")
         {
             RpcsetGreenScore();
+            Destroy(collision.gameObject);
         }
 
         if (collision.gameObject.tag == "BulletBlue")
         {
             RpcsetBlueScore();
+            Destroy(collision.gameObject);
         }
 
         if (collision.gameObject.tag == "BulletRed")
         {
             RpcsetRedScore();
+            Destroy(collision.gameObject);
         }
     }
     [Command]
     void CmdgetScoreUpdate()
     {
-
-        //GameObject GameManager = GameObject.Find("GameManager");
+        
 
         redScore.text = GameManager.rScore.ToString();
 
@@ -375,8 +383,7 @@ public class PlayerController : NetworkBehaviour
 
     void getScoreUpdate()
     {
-
-        //GameObject GameManager = GameObject.Find("GameManager");
+        
 
         redScore.text = GameManager.rScore.ToString();
 
@@ -385,12 +392,13 @@ public class PlayerController : NetworkBehaviour
         blueScore.text = GameManager.bScore.ToString();
     }
 
-
-    public void TakeColour(Color color)
+    [ClientRpc]
+    public void RpcTakeColour(Color color)
     {
         enemyColor = color;
         Debug.Log("receiving this color :" + enemyColor);
-        beenHit = true;
+        wasHit = true;
+        hitOnlyOnce = true;
     }
 
     [ClientRpc]
@@ -448,5 +456,19 @@ public class PlayerController : NetworkBehaviour
         GetComponent<MeshRenderer>().material.color = enemyColor;
     }
 
+    public void turnCursorOn()
+    {
+        Cursor.visible = true;
+        GameOverPanel.SetActive(true);
+        winnerText.text = GameManager.Winner;
+        turnCursorOn();
+        Time.timeScale = 0;
+    }
+
+    [ClientRpc]
+    public void RpcSetTimeLower()
+    {
+        GameManager.inGameTimer = 20;
+    }
 
 }

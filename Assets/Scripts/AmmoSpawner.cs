@@ -6,8 +6,8 @@ public class AmmoSpawner : NetworkBehaviour {
     public GameObject ammoPrefab;
     public int numberOfAmmoObjects;
 
-    public float minSpawnPosition = -28.0f;
-    public float maxSpawnPosition = 28.0f;
+    public float minSpawnPosition = -35.0f;
+    public float maxSpawnPosition = 35.0f;
 
     private float minSpawnRotation = 0.0f;
     private float maxSpawnRotation = 180.0f;
@@ -36,6 +36,7 @@ public class AmmoSpawner : NetworkBehaviour {
     [ClientRpc]
     public void RpcspawnAmmo()
     {
+        
         for (int i = 0; i < numberOfAmmoObjects; i++)
         {
             var spawnPosition = new Vector3(
